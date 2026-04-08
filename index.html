@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conceptual Modelling and Programming (2026S)</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .instructor-card {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      padding: 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+      box-shadow: var(--card-shadow);
+      margin: 1rem 0 1.5rem;
+    }
+    .instructor-card img {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--accent);
+    }
+    .instructor-card .instructor-info h4 {
+      font-size: 1.3rem;
+      color: var(--heading);
+      margin-bottom: 0.3rem;
+    }
+    .instructor-card .instructor-info p {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 0.15rem;
+    }
+    .schedule-table th,
+    .schedule-table td {
+      vertical-align: top;
+      font-size: 0.86rem;
+    }
+    .schedule-table td:first-child {
+      white-space: nowrap;
+      font-weight: 500;
+      color: var(--text-muted);
+      width: 100px;
+    }
+    .schedule-table td:nth-child(2) {
+      white-space: nowrap;
+      width: 50px;
+      font-weight: 600;
+    }
+    .phase-header td {
+      background: var(--bg-sidebar);
+      font-weight: 700;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      padding: 0.6rem 0.85rem;
+      border-bottom: 2px solid var(--accent);
+    }
+    .schedule-table .lecture-row td:nth-child(3) {
+      color: var(--heading);
+      font-weight: 500;
+    }
+    .schedule-table .exam-row td {
+      background: var(--tag-bg);
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .material-link {
+      display: inline-block;
+      font-size: 0.78rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 5px;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-weight: 500;
+      margin: 0.1rem 0.15rem;
+      transition: all 0.15s;
+    }
+    .material-link:hover {
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+    }
+    .deadline-tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 5px;
+      font-weight: 600;
+    }
+    .deadline-optional {
+      background: #ecfdf5;
+      color: #059669;
+    }
+    [data-theme="dark"] .deadline-optional {
+      background: #022c22;
+      color: #6ee7b7;
+    }
+    .deadline-mandatory {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+    [data-theme="dark"] .deadline-mandatory {
+      background: #450a0a;
+      color: #fca5a5;
+    }
+    .deadline-exam {
+      background: var(--tag-bg);
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <img src="img/uni_logo.png" alt="University of Vienna" class="sidebar-logo">
+    <div class="course-id">290059 VU</div>
+    <h2>Conceptual Modelling and Programming</h2>
+    <div class="semester">2026S &middot; University of Vienna</div>
+  </div>
+  <nav>
+    <div class="nav-section">
+      <div class="nav-section-title">Overview</div>
+      <a href="index.html" class="active">Home</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Lectures &amp; Labs</div>
+      <a href="week1.html">Week 1: Data Types &amp; Control</a>
+      <a href="week2.html">Week 2: Methods &amp; OO I</a>
+      <a href="week3.html">Week 3: Methods &amp; OO II</a>
+      <a href="week4.html">Week 4: Inheritance I</a>
+      <a href="week5.html">Week 5: Inheritance II</a>
+      <a href="week6.html">Week 6: Midterm Exam</a>
+      <a href="week7.html">Week 7: GUI &amp; Listeners</a>
+      <a href="week8.html">Week 8: GUI, File I/O &amp; MVC</a>
+      <a href="week9.html">Week 9: Ripley&rsquo;s K Example</a>
+      <a href="week10.html">Week 10: Libraries &amp; Exceptions</a>
+      <a href="week11.html">Week 11: Final Exam</a>
+    </div>
+  </nav>
+</aside>
+
+<!-- Backdrop for mobile -->
+<div class="sidebar-backdrop" id="backdrop"></div>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar">&#9776;</button>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">&#9790;</button>
+  </div>
+
+  <div class="content">
+
+    <div class="hero">
+      <h1>Conceptual Modelling and Programming</h1>
+      <p class="subtitle">290059 VU &middot; Summer Semester 2026 &middot; University of Vienna</p>
+    </div>
+
+    <!-- Course Description -->
+    <h2>Course Description</h2>
+    <p>This course introduces fundamental concepts of object-oriented programming through Java, using geospatial concepts as a unifying theme &mdash; progressing from abstract modelling to real-world geographic applications. Students will learn to model real-world phenomena as computational abstractions, understand how GIS software works under the hood, and develop collaborative programming skills.</p>
+
+    <!-- Instructor -->
+    <h2>Instructor</h2>
+    <div class="instructor-card">
+      <img src="img/Yingjing.jpg" alt="Yingjing Huang">
+      <div class="instructor-info">
+        <h4><a href="https://yingjinghuang.github.io/" target="_blank">Yingjing Huang</a></h4>
+        <p>University of Vienna</p>
+        <p>yingjing.huang@univie.ac.at</p>
+      </div>
+    </div>
+
+    <!-- Logistics -->
+    <h2>Logistics</h2>
+    <ul>
+      <li><strong>Class meetings:</strong> Mondays, 11:30 &ndash; 14:30, Multimedia Mapping-Labor, NIG 1.Stock C0110</li>
+      <li><strong>Course platform:</strong> We will be using <strong>Moodle</strong> for announcements, materials, and assignment submissions.</li>
+      <li><strong>Textbooks:</strong>
+        <ul>
+          <li>A Practical Introduction to Data Structures and Algorithm Analysis</li>
+          <li>Introduction to Programming Using Java</li>
+          <li>Think Java: How to Think Like a Computer Scientist</li>
+        </ul>
+      </li>
+    </ul>
+
+    <!-- Grading Policy -->
+    <h2>Grading Policy</h2>
+    <div class="grading-bar">
+      <div style="width:40%; background:#005ea0;"></div>
+      <div style="width:40%; background:#0077c8;"></div>
+      <div style="width:10%; background:#10b981;"></div>
+      <div style="width:10%; background:#f59e0b;"></div>
+    </div>
+    <div class="grading-legend">
+      <span><span style="background:#005ea0;display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:middle;"></span>Midterm 40%</span>
+      <span><span style="background:#0077c8;display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:middle;"></span>Final 40%</span>
+      <span><span style="background:#10b981;display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:middle;"></span>Participation 10%</span>
+      <span><span style="background:#f59e0b;display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:middle;"></span>Assignment 10%</span>
+    </div>
+    <ul style="margin-top:1rem;">
+      <li>Both exams are <strong>paper-based</strong> &mdash; you will write source code on paper.</li>
+      <li>No make-up exams are offered.</li>
+      <li>There is one <strong>mandatory individual assignment</strong> (Week 8, 10%).</li>
+      <li>Optional weekly assignments are offered throughout the semester for practice.</li>
+    </ul>
+
+    <!-- Schedule -->
+    <h2>Schedule</h2>
+    <p style="font-size:0.88rem; color:var(--text-muted);">Subject to change as the semester progresses.</p>
+
+    <table class="schedule-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Week</th>
+          <th>Topic</th>
+          <th>Materials</th>
+          <th>Deadlines</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="phase-header">
+          <td colspan="5">Phase 1 &mdash; Foundations</td>
+        </tr>
+        <tr class="lecture-row">
+          <td>13.04.2026</td>
+          <td>W1</td>
+          <td><a href="week1.html">Intro, Data Types, Operators, and Control Statements</a></td>
+          <td>
+            <a href="slides/Week1.pdf" class="material-link" target="_blank">Slides</a>
+            <a href="code/week1/Week1.zip" class="material-link" target="_blank">Code</a>
+          </td>
+          <td></td>
+        </tr>
+        <tr class="lecture-row">
+          <td>20.04.2026</td>
+          <td>W2</td>
+          <td><a href="week2.html">Methods and Object Orientation I</a></td>
+          <td></td>
+          <td><span class="deadline-tag deadline-optional">W1 Assignment (optional)</span></td>
+        </tr>
+        <tr class="lecture-row">
+          <td>27.04.2026</td>
+          <td>W3</td>
+          <td><a href="week3.html">Methods and Object Orientation II</a></td>
+          <td></td>
+          <td><span class="deadline-tag deadline-optional">W2 Assignment (optional)</span></td>
+        </tr>
+
+        <tr class="phase-header">
+          <td colspan="5">Phase 2 &mdash; Inheritance &amp; Polymorphism</td>
+        </tr>
+        <tr class="lecture-row">
+          <td>04.05.2026</td>
+          <td>W4</td>
+          <td><a href="week4.html">Inheritance and Polymorphism I</a></td>
+          <td></td>
+          <td><span class="deadline-tag deadline-optional">W3 Assignment (optional)</span></td>
+        </tr>
+        <tr class="lecture-row">
+          <td>11.05.2026</td>
+          <td>W5</td>
+          <td><a href="week5.html">Inheritance and Polymorphism II</a></td>
+          <td></td>
+          <td><span class="deadline-tag deadline-optional">W4 Assignment (optional)</span></td>
+        </tr>
+
+        <tr class="phase-header">
+          <td colspan="5">Midterm</td>
+        </tr>
+        <tr class="exam-row">
+          <td>18.05.2026</td>
+          <td>W6</td>
+          <td><a href="week6.html"><strong>MIDTERM EXAM</strong></a> &mdash; Covers Weeks 1&ndash;5</td>
+          <td></td>
+          <td><span class="deadline-tag deadline-exam">Exam (40%)</span></td>
+        </tr>
+
+        <tr class="phase-header">
+          <td colspan="5">Phase 3 &mdash; GUI &amp; Applications</td>
+        </tr>
+        <tr class="lecture-row">
+          <td>01.06.2026</td>
+          <td>W7</td>
+          <td><a href="week7.html">GUI I and Action Listeners</a></td>
+          <td></td>
+          <td><span class="deadline-tag deadline-optional">W5 Assignment (optional)</span></td>
+        </tr>
+        <tr class="lecture-row">
+          <td>08.06.2026</td>
+          <td>W8</td>
+          <td><a href="week8.html">GUI, File Readers, and MVC</a></td>
+          <td></td>
+          <td><span class="deadline-tag deadline-mandatory">Mandatory Assignment issued</span></td>
+        </tr>
+
+        <tr class="phase-header">
+          <td colspan="5">Phase 4 &mdash; Advanced Topics</td>
+        </tr>
+        <tr class="lecture-row">
+          <td>15.06.2026</td>
+          <td>W9</td>
+          <td><a href="week9.html">Ripley&rsquo;s K Worked Example</a></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr class="lecture-row">
+          <td>22.06.2026</td>
+          <td>W10</td>
+          <td><a href="week10.html">External Libraries and Exceptions</a></td>
+          <td></td>
+          <td><span class="deadline-tag deadline-mandatory">Mandatory Assignment due</span></td>
+        </tr>
+
+        <tr class="phase-header">
+          <td colspan="5">Final</td>
+        </tr>
+        <tr class="exam-row">
+          <td>29.06.2026</td>
+          <td>W11</td>
+          <td><a href="week11.html"><strong>FINAL EXAM</strong></a> &mdash; Covers all weeks</td>
+          <td></td>
+          <td><span class="deadline-tag deadline-exam">Exam (40%)</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Attendance -->
+    <h2>Attendance Policy</h2>
+    <p>Attendance is at your discretion.</p>
+
+    <div class="footer">
+      <p>Conceptual Modelling and Programming &middot; University of Vienna &middot; 2026S</p>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

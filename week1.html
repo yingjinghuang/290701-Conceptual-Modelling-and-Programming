@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 1: Data Types, Operators &amp; Control Statements - CMP 2026S</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <img src="img/uni_logo.png" alt="University of Vienna" class="sidebar-logo">
+    <div class="course-id">290059 VU</div>
+    <h2>Conceptual Modelling and Programming</h2>
+    <div class="semester">2026S &middot; University of Vienna</div>
+  </div>
+  <nav>
+    <div class="nav-section">
+      <div class="nav-section-title">Overview</div>
+      <a href="index.html">Home</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Lectures &amp; Labs</div>
+      <a href="week1.html" class="active">Week 1: Data Types &amp; Control</a>
+      <a href="week2.html">Week 2: Methods &amp; OO I</a>
+      <a href="week3.html">Week 3: Methods &amp; OO II</a>
+      <a href="week4.html">Week 4: Inheritance I</a>
+      <a href="week5.html">Week 5: Inheritance II</a>
+      <a href="week6.html">Week 6: Midterm Exam</a>
+      <a href="week7.html">Week 7: GUI &amp; Listeners</a>
+      <a href="week8.html">Week 8: GUI, File I/O &amp; MVC</a>
+      <a href="week9.html">Week 9: Ripley&rsquo;s K Example</a>
+      <a href="week10.html">Week 10: Libraries &amp; Exceptions</a>
+      <a href="week11.html">Week 11: Final Exam</a>
+    </div>
+  </nav>
+</aside>
+
+<div class="sidebar-backdrop" id="backdrop"></div>
+
+<div class="main">
+  <div class="topbar">
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle sidebar">&#9776;</button>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">&#9790;</button>
+  </div>
+
+  <div class="content">
+
+    <div class="hero">
+      <h1>Week 1: Data Types, Operators, and Control Statements</h1>
+      <p class="subtitle">13.04.2026</p>
+    </div>
+
+    <h2>Slides</h2>
+    <p><a href="slides/Week1.pdf" style="font-weight:600;" target="_blank">Download Week 1 Slides (PDF) &rarr;</a></p>
+
+    <h2>Code Example</h2>
+    <div class="info-box">
+      <p><strong>Week1.java</strong> &mdash; Output, arithmetic, variables, loops, and methods.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week1;
+
+/**
+ * Week 1 - Introduction to Java basics: output, arithmetic, variables, loops, and methods.
+ */
+public class Week1 {
+
+    public static void main(String[] args) {
+
+        // --- Section 1: Output and basic arithmetic ---
+        System.out.println("Discrete Mathematics");
+
+        // Parentheses force arithmetic addition: 1+1 = 2
+        System.out.println("1+1: " + (1 + 1));
+
+        // Without parentheses, + performs string concatenation: "Same here: " + "1" + "1" = "Same here: 11"
+        System.out.println("Same here: " + 1 + 1);
+
+        // Integer division: 10/10 = 1 (no decimal places)
+        System.out.println("1000/1000 yields: " + (10 / 10));
+
+        // WARNING: Integer division by zero throws ArithmeticException and crashes the program!
+        // Uncomment the next line to see it in action (the program will stop here):
+        // System.out.println("42/0 yields: " + (42 / 0));
+
+        // Floating-point division by zero does NOT crash - it returns Infinity instead.
+        // This is because IEEE 754 floating-point standard defines division by zero as Infinity.
+        System.out.println("42.0/0 yields: " + (42.0 / 0));
+
+        // Floating-point precision: 0.1 + 0.1 = 0.2 (exact)
+        System.out.println("0.1+0.1 yields: " + (0.1 + 0.1));
+
+        // But 0.1 + 0.1 + 0.1 is NOT exactly 0.3 due to floating-point representation!
+        System.out.println("0.1+0.1+0.1 yields: " + (0.1 + 0.1 + 0.1));
+
+        // --- Section 2: Variables ---
+        double distance1;       // Declare a variable (no initial value yet)
+        distance1 = 10;         // Assign a value later
+        double distance2 = 5;   // Declare and initialize in one step
+
+        // Math.max returns the larger of two values
+        System.out.println("Max: " + Math.max(distance1, distance2));
+
+        // Calling a custom method (defined below)
+        System.out.println("add-one: " + addOne(distance2));
+
+        // --- Section 3: Loops and Math functions ---
+        // Print the square of each number from 0 to 9 using Math.pow()
+        for (int i = 0; i &lt; 10; i++) {
+            System.out.println(Math.pow(i, 2));
+        }
+
+        // --- Section 4: Conditionals (uncomment to try) ---
+        // int count = 4;
+        // if (count == 42) {
+        //     System.out.println("THE answer!");
+        // } else {
+        //     System.out.println("hmmm...");
+        // }
+    }
+
+    /**
+     * A simple method that adds 1 to the input value.
+     * Demonstrates how to define and call a static method.
+     */
+    public static double addOne(double in) {
+        return in + 1;
+    }
+}</code></pre>
+
+    <h2>Assignment (Optional)</h2>
+    <div class="assignment-box">
+      <h3>Week 1 Assignment</h3>
+      <p><strong>Reading:</strong> Chapters 1&ndash;2 on variables and control statements</p>
+      <p><strong>Coding:</strong></p>
+      <ul>
+        <li>Compute the Euclidean distance between two points in a 2D coordinate system (hint: <code>Math.sqrt()</code>, <code>Math.pow()</code>)</li>
+        <li>Define a polyline and a polygon, compute the shortest distance between them using their vertices (hint: you can use separate variables for each point)</li>
+        <li><em>Optional:</em> Check whether the polygon is closed</li>
+      </ul>
+      <p><strong>Submission:</strong> Upload <code>FirstNameLastNameW1.zip</code> with your <code>.java</code> files<br>
+      <strong>Deadline:</strong> Sunday at 5:00 PM (Vienna Time)</p>
+    </div>
+
+    <div class="footer">
+      <p>Conceptual Modelling and Programming &middot; University of Vienna &middot; 2026S</p>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
