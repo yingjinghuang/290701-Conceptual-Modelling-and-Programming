@@ -23,7 +23,7 @@
     <div class="nav-section">
       <div class="nav-section-title">Lectures &amp; Labs</div>
       <a href="week1.html">Week 1: Data Types &amp; Control</a>
-      <a href="week2.html">Week 2: Methods &amp; OO I</a>
+      <a href="week2.html" class="active">Week 2: Methods &amp; OO I</a>
       <a href="week3.html">Week 3: Methods &amp; OO II</a>
       <a href="week4.html">Week 4: Inheritance I</a>
       <a href="week5.html">Week 5: Inheritance II</a>
@@ -52,8 +52,237 @@
       <p class="subtitle">20.04.2026</p>
     </div>
 
+    <h2>Slides</h2>
+    <p><a href="slides/Week2.pdf" style="font-weight:600;" target="_blank">Download Week 2 Slides (PDF) &rarr;</a></p>
+
+    <h2>Code Examples</h2>
+
     <div class="info-box">
-      <p>Content for this week will be available closer to the lecture date.</p>
+      <p><strong>Farm.java</strong> &mdash; A class with private fields, overloaded constructors, and getters/setters (encapsulation).</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week2;
+
+public class Farm {
+
+    // Member variables are private - only accessible through getters/setters (encapsulation).
+    private String name = "";       // An empty string that will store the name of the farm
+    private int nrOfEmployees = 0;  // The number of employees is set to 0 as default value.
+
+    // This constructor does not take the number of employees as additional input and, hence, it will remain 0.
+    public Farm(String name){
+        // The local 'name' variable will be stored in the member variable above.
+        this.name = name;
+    }
+
+    // This constructor also allows to specify a number of employees.
+    public Farm(String name, int nrOfEmployees){
+        this.name = name;
+        this.nrOfEmployees = nrOfEmployees;
+    }
+
+    // This returns the value stored in the member variable name.
+    public String getName(){
+        return name;
+    }
+
+    // Assigns a new value to name, e.g., to change the name of the farm.
+    public void setName(String newName){
+        this.name = newName;
+    }
+
+    // This just returns the number of employees of the farm.
+    public int getNrOfEmployees() {
+        return nrOfEmployees;
+    }
+
+    // This method allows you to change the number of employees.
+    public void setNrOfEmployees(int nrOfEmployees) {
+        this.nrOfEmployees = nrOfEmployees;
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>FarmTest.java</strong> &mdash; Creates Farm objects, puts them in an array, and iterates over them.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week2;
+
+// The Farm class it your model/blueprint of a farm and has no main method.
+// This class here is for testing your model, i.e., for creating specific farm objects.
+
+public class FarmTest {
+
+    public static void main(String[] args) {
+
+        // Create (and name) two farms
+        Farm aFarm = new Farm("Super Farm");
+        Farm aFarm2 = new Farm("Big Farm");
+        Farm aFarm3 = new Farm("XFarm", 100); // This farm is created by calling the second constructor.
+
+        //Display the name
+        System.out.println(aFarm.getName());
+
+        // Change the name (and display it)
+        aFarm.setName("New Farm");
+        System.out.println(aFarm.getName());
+
+        // Create an array of (3) farms
+        Farm[] farms = {aFarm, aFarm2, aFarm3};
+
+        //Iterate over all farms to get the number of employees.
+        for (int i =0; i &lt; farms.length; i++){ // farms.length returns the number of elements in the array
+            /*
+             * As we have defined Farm as a complex data type (class) together with some method, we can iterate
+             * over individual farms, i.e., object, and call these methods to return the name of the farms and
+             * the number of employees. Note how we use i to select the right index in the array of farms.
+             */
+            System.out.println("Farm "+farms[i].getName()+" has "+farms[i].getNrOfEmployees()+" employees.");
+        }
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>Triangle.java</strong> &mdash; A class with input validation, method composition (area reuses perimeter), and Heron&rsquo;s formula.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week2;
+
+/**
+ * A simple Triangle class demonstrating encapsulation, constructors, and methods.
+ * The three sides define the triangle, and we can compute perimeter and area from them.
+ */
+public class Triangle {
+
+    // Private member variables - only accessible through getters/setters (encapsulation)
+    private double sideA;
+    private double sideB;
+    private double sideC;
+
+    /**
+     * Constructor: creates a triangle with three given side lengths.
+     * The keyword 'this' distinguishes member variables from constructor parameters.
+     */
+    public Triangle(double sideA, double sideB, double sideC) {
+        if (sideA &lt;= 0 || sideB &lt;= 0 || sideC &lt;= 0) {
+            throw new IllegalArgumentException("Side lengths must be positive.");
+        }
+        // Triangle inequality: the sum of any two sides must be greater than the third.
+        if (sideA + sideB &lt;= sideC || sideA + sideC &lt;= sideB || sideB + sideC &lt;= sideA) {
+            throw new IllegalArgumentException("The given sides do not form a valid triangle.");
+        }
+        this.sideA = sideA;
+        this.sideB = sideB;
+        this.sideC = sideC;
+    }
+
+    // --- Getters: return the current values of private fields ---
+
+    public double getSideA() {
+        return sideA;
+    }
+
+    public double getSideB() {
+        return sideB;
+    }
+
+    public double getSideC() {
+        return sideC;
+    }
+
+    // --- Setters: allow controlled modification of private fields ---
+
+    public void setSideA(double sideA) {
+        this.sideA = sideA;
+    }
+
+    public void setSideB(double sideB) {
+        this.sideB = sideB;
+    }
+
+    public void setSideC(double sideC) {
+        this.sideC = sideC;
+    }
+
+    /**
+     * Calculates the perimeter (sum of all three sides).
+     */
+    public double calculatePerimeter() {
+        return sideA + sideB + sideC;
+    }
+
+    /**
+     * Calculates the area using Heron's formula.
+     * Given semi-perimeter s = perimeter / 2, the area = sqrt(s * (s-a) * (s-b) * (s-c)).
+     * Note how this method reuses calculatePerimeter() - methods can call other methods.
+     */
+    public double calculateArea() {
+        double s = calculatePerimeter() / 2;
+        return Math.sqrt(s * (s - sideA) * (s - sideB) * (s - sideC));
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>TriangleTest.java</strong> &mdash; Creates Triangle objects, iterates, resizes via setters, and demonstrates input validation with try/catch.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week2;
+
+// The Triangle class is your model/blueprint of a triangle and has no main method.
+// This class here is for testing your model, i.e., for creating specific triangle objects.
+
+public class TriangleTest {
+
+    public static void main(String[] args) {
+
+        // Create three triangles with different side lengths.
+        Triangle t1 = new Triangle(3, 4, 5);           // A classic right triangle.
+        Triangle t2 = new Triangle(6, 6, 6);           // An equilateral triangle.
+        Triangle t3 = new Triangle(5.5, 7.2, 9.1);     // An arbitrary triangle.
+
+        // Put them into an array so we can iterate over them.
+        Triangle[] triangles = {t1, t2, t3};
+
+        // Iterate over all triangles and print their side lengths, perimeter, and area.
+        for (int i = 0; i &lt; triangles.length; i++) {
+            Triangle t = triangles[i];
+            System.out.println("Triangle " + (i + 1)
+                    + " (a=" + t.getSideA()
+                    + ", b=" + t.getSideB()
+                    + ", c=" + t.getSideC() + ")"
+                    + " -> perimeter = " + t.calculatePerimeter()
+                    + ", area = " + t.calculateArea());
+        }
+
+        // Demonstrate setters: change one side and recompute.
+        t1.setSideA(6);
+        t1.setSideB(8);
+        t1.setSideC(10);
+        System.out.println("After resizing t1: perimeter = " + t1.calculatePerimeter()
+                + ", area = " + t1.calculateArea());
+
+        // Demonstrate input validation: try to create an invalid triangle.
+        try {
+            Triangle invalid = new Triangle(1, 1, 5); // violates the triangle inequality
+            System.out.println("This line should not be reached: " + invalid.calculateArea());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Caught expected error: " + e.getMessage());
+        }
+    }
+}</code></pre>
+
+    <h2>Assignment (Optional)</h2>
+    <div class="assignment-box">
+      <h3>Week 2 Assignment</h3>
+      <p><strong>Reading:</strong> Read about methods and classes, and describe them in your own words (a short text is fine).</p>
+      <p><strong>Coding:</strong></p>
+      <ul>
+        <li>Define a <code>Point</code> class with a <code>distanceTo</code> method</li>
+        <li>Define a <code>BoundingBox</code> class with an <code>isInside</code> method</li>
+        <li>Write a test class that checks whether points fall inside the bounding box and computes distances between them</li>
+      </ul>
+      <p><strong>Submission:</strong> Upload <code>FirstNameLastNameW2.zip</code> with your <code>.java</code> files<br>
+      <strong>Deadline:</strong> Sunday at 5:00 PM (Vienna Time)</p>
     </div>
 
     <div class="footer">
