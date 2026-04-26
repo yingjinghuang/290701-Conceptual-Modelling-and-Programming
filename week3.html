@@ -24,7 +24,7 @@
       <div class="nav-section-title">Lectures &amp; Labs</div>
       <a href="week1.html">Week 1: Data Types &amp; Control</a>
       <a href="week2.html">Week 2: Methods &amp; OO I</a>
-      <a href="week3.html">Week 3: Methods &amp; OO II</a>
+      <a href="week3.html" class="active">Week 3: Methods &amp; OO II</a>
       <a href="week4.html">Week 4: Inheritance I</a>
       <a href="week5.html">Week 5: Inheritance II</a>
       <a href="week6.html">Week 6: Midterm Exam</a>
@@ -52,8 +52,371 @@
       <p class="subtitle">27.04.2026</p>
     </div>
 
+    <h2>Slides</h2>
+    <p><a href="slides/Week3.pdf" style="font-weight:600;" target="_blank">Download Week 3 Slides (PDF) &rarr;</a></p>
+
+    <h2>Code Examples</h2>
+
+    <p>Three reference packages, each mapped to one of today&rsquo;s main ideas: inheritance with overriding, the delegation pattern, and a small simulation.</p>
+
+    <pre><code>Code/Week3/src/at/ac/univie/gis/week3/
+├── inheritance/
+│   ├── Geometry.java          Parent class (name field + default toString)
+│   ├── Point.java             extends Geometry; overrides toString + equals
+│   └── InheritanceMain.java   Polymorphism demo, == vs .equals()
+├── polyline/
+│   ├── Point.java             Lightweight 2D point, no inheritance
+│   ├── PolyLine.java          HAS-A ArrayList&lt;Point&gt; (delegation)
+│   └── PolyLineMain.java      Builds a polyline, iterates, prints length
+└── zombies/
+    ├── Corridor.java          int[] cells with the step() rule
+    └── ZombiesMain.java       Runs the corridor until it stabilises</code></pre>
+
+    <h3>1. <code>inheritance/</code> &mdash; <code>extends</code>, <code>toString</code>, <code>equals</code></h3>
+
     <div class="info-box">
-      <p>Content for this week will be available closer to the lecture date.</p>
+      <p><strong>Geometry.java</strong> &mdash; The parent class. Holds a <code>protected</code> <code>name</code> field shared by every geometry (slide 23 visibility level) and a default <code>toString</code> that subclasses are free to override.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week3.inheritance;
+
+/**
+ * A simple parent class in our small geometry hierarchy.
+ * Every Geometry has a name (just a label, e.g. "origin", "lake-outline").
+ *
+ * The name field is protected, which is the visibility level introduced
+ * on slide 23: visible to this class and to any subclass, but not to
+ * unrelated outside code.
+ */
+public class Geometry {
+
+    // protected: a subclass like Point can read and write this field directly.
+    protected String name = "";
+
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Default text representation. Subclasses typically override this
+     * to include their own fields (see Point.toString).
+     */
+    @Override
+    public String toString() {
+        return "Geometry{name=" + name + "}";
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>Point.java</strong> &mdash; A <code>Point</code> IS-A <code>Geometry</code>. Adds <code>x</code> and <code>y</code>, sets the inherited <code>name</code> via direct <code>protected</code> access, and overrides both <code>toString</code> and <code>equals</code>.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week3.inheritance;
+
+/**
+ * A Point is-a Geometry, with two coordinate fields added on top.
+ * Demonstrates extends, accessing a protected field from a subclass,
+ * and overriding both toString and equals.
+ */
+public class Point extends Geometry {
+
+    private double x;
+    private double y;
+
+    public Point(String name, double x, double y) {
+        // Parent construction always happens first — Java runs Geometry's
+        // no-arg constructor before any line in this body executes.
+        // We then assign the inherited 'name' field directly, which is
+        // possible because Geometry declared it protected (slide 23).
+        this.name = name;
+        this.x = x;
+        this.y = y;
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    /**
+     * Override Geometry's toString so println shows the coordinates,
+     * not just "Geometry{name=...}".
+     */
+    @Override
+    public String toString() {
+        return "Point{name=" + name + ", x=" + x + ", y=" + y + "}";
+    }
+
+    /**
+     * Override Object's equals so two Points with the same coordinates
+     * compare equal. Without this, .equals falls back to == (identity).
+     * getClass() comes from Object — every class has it for free.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || o.getClass() != this.getClass()) return false;
+        Point other = (Point) o;
+        return x == other.x &amp;&amp; y == other.y;
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>InheritanceMain.java</strong> &mdash; A <code>Geometry</code> variable holding a <code>Point</code> still calls Point&rsquo;s <code>toString</code> (dynamic dispatch). Side-by-side comparison of <code>==</code> and <code>.equals()</code>.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week3.inheritance;
+
+/**
+ * Demonstrates the three ideas from the inheritance block:
+ *   1. extends + super(...) constructor handoff
+ *   2. toString override (dispatched at runtime)
+ *   3. equals override vs ==
+ */
+public class InheritanceMain {
+
+    public static void main(String[] args) {
+
+        // A Point IS-A Geometry, so a Geometry-typed variable can hold a Point.
+        // When we print g, Java picks Point's toString at runtime, not Geometry's.
+        Geometry g = new Point("origin", 0, 0);
+        System.out.println(g);
+
+        // Two distinct Point objects with the same coordinates.
+        Point a = new Point("a", 3, 4);
+        Point b = new Point("b", 3, 4);
+        Point c = a;
+
+        // == compares object identity (memory address).
+        // .equals compares values, because we overrode it on Point.
+        System.out.println("a == b:       " + (a == b));        // false: different objects
+        System.out.println("a.equals(b):  " + a.equals(b));     // true: same coordinates
+        System.out.println("a == c:       " + (a == c));        // true: same reference
+    }
+}</code></pre>
+
+    <h3>2. <code>polyline/</code> &mdash; <code>ArrayList</code> + delegation</h3>
+
+    <div class="info-box">
+      <p><strong>Point.java</strong> &mdash; A lightweight 2D point used by <code>PolyLine</code>. Deliberately independent from the <code>inheritance</code> package so this example stays self-contained &mdash; two classes named <code>Point</code> can coexist in different packages.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week3.polyline;
+
+/**
+ * A simple 2D point used by PolyLine. Kept independent from the
+ * inheritance package so the delegation example stays self-contained.
+ * (Two classes named Point can coexist because they live in different
+ * packages — that's exactly what packages buy you.)
+ */
+public class Point {
+
+    private double x;
+    private double y;
+
+    public Point(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public double distanceTo(Point other) {
+        double dx = x - other.x;
+        double dy = y - other.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    @Override
+    public String toString() {
+        return "(" + x + ", " + y + ")";
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>PolyLine.java</strong> &mdash; HAS-A relationship: a <code>PolyLine</code> holds a private <code>ArrayList&lt;Point&gt;</code>. Note we do <em>not</em> write <code>extends ArrayList</code> &mdash; a polyline is not a kind of list, it just uses one.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week3.polyline;
+
+import java.util.ArrayList;
+
+/**
+ * PolyLine HAS-A list of points (delegation), it is NOT-A list.
+ * We do not write "class PolyLine extends ArrayList" — a polyline is
+ * not a kind of list, it just uses one internally to store its vertices.
+ *
+ * Outside callers only see the methods we choose to expose
+ * (addPoint, size, get, length). The ArrayList itself stays private.
+ */
+public class PolyLine {
+
+    private ArrayList&lt;Point&gt; vertices;
+
+    public PolyLine() {
+        vertices = new ArrayList&lt;Point&gt;();
+    }
+
+    public void addPoint(Point p) {
+        vertices.add(p);
+    }
+
+    public int size() {
+        return vertices.size();
+    }
+
+    public Point get(int index) {
+        return vertices.get(index);
+    }
+
+    /**
+     * Total length: sum of distances between consecutive vertices.
+     * A two-vertex polyline reduces to one segment; a one-vertex or
+     * empty polyline has length 0.
+     */
+    public double length() {
+        double total = 0;
+        for (int i = 1; i &lt; vertices.size(); i++) {
+            total += vertices.get(i - 1).distanceTo(vertices.get(i));
+        }
+        return total;
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>PolyLineMain.java</strong> &mdash; Adds three points, iterates, prints each vertex, and prints the total length.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week3.polyline;
+
+/**
+ * Builds a small polyline, iterates over its vertices, prints each one,
+ * and finally prints the total length. Demonstrates how an ArrayList
+ * makes "I do not know yet how many points there will be" a non-issue.
+ */
+public class PolyLineMain {
+
+    public static void main(String[] args) {
+        PolyLine line = new PolyLine();
+        line.addPoint(new Point(0, 0));
+        line.addPoint(new Point(3, 0));
+        line.addPoint(new Point(3, 4));
+
+        for (int i = 0; i &lt; line.size(); i++) {
+            System.out.println("vertex " + i + ": " + line.get(i));
+        }
+
+        System.out.println("total length: " + line.length());
+    }
+}</code></pre>
+
+    <h3>3. <code>zombies/</code> &mdash; the corridor simulation</h3>
+
+    <div class="info-box">
+      <p><strong>Corridor.java</strong> &mdash; A row of cells. Each <code>step()</code> snapshots the current state, then for every cell with more than one zombie, removes two and adds one to the cell on its left. The leftmost cell&rsquo;s outgoing zombie just disappears.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week3.zombies;
+
+import java.util.Arrays;
+
+/**
+ * A single linear corridor of cells. Each cell holds a zombie count.
+ *
+ * Movement rule (slide 33): if a cell holds more than one zombie,
+ * one moves to the cell on its left and one disappears. The leftmost
+ * cell cannot move further left, so its outgoing zombie just vanishes.
+ *
+ * The rule is applied to every cell based on its state at the *start*
+ * of the step. We achieve that by writing into a copy.
+ */
+public class Corridor {
+
+    private int[] cells;
+
+    public Corridor(int[] initial) {
+        this.cells = initial.clone();
+    }
+
+    /**
+     * The simulation has stabilised when no cell has more than one zombie.
+     */
+    public boolean isStable() {
+        for (int c : cells) {
+            if (c &gt; 1) return false;
+        }
+        return true;
+    }
+
+    public void step() {
+        int[] next = cells.clone();
+        for (int i = 0; i &lt; cells.length; i++) {
+            if (cells[i] &gt; 1) {
+                next[i] -= 2;
+                if (i &gt; 0) {
+                    next[i - 1] += 1;
+                }
+            }
+        }
+        cells = next;
+    }
+
+    @Override
+    public String toString() {
+        return Arrays.toString(cells);
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>ZombiesMain.java</strong> &mdash; Starts with <code>[0, 0, 0, 0, 4]</code> and steps until the corridor is stable, printing each step.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week3.zombies;
+
+/**
+ * Runs the zombie corridor simulation from the slide:
+ * start with [0, 0, 0, 0, 4], step until every cell holds at most one.
+ */
+public class ZombiesMain {
+
+    public static void main(String[] args) {
+        Corridor corridor = new Corridor(new int[]{0, 0, 0, 0, 4});
+
+        int step = 0;
+        System.out.println("step " + step + ": " + corridor);
+
+        while (!corridor.isStable()) {
+            corridor.step();
+            step++;
+            System.out.println("step " + step + ": " + corridor);
+        }
+
+        System.out.println("stable after " + step + " steps");
+    }
+}</code></pre>
+
+    <h2>Assignment (Optional)</h2>
+    <div class="assignment-box">
+      <h3>Week 3 Assignment</h3>
+      <p><strong>Reading:</strong> Chapters on the <code>static</code> keyword and <code>ArrayList</code>. Explore the official Java API &mdash; in particular the <code>Arrays</code> class.</p>
+      <p><strong>Coding:</strong> Start building a simple epidemic simulation.</p>
+      <ul>
+        <li>Create a <code>Person</code> class with a health state (<code>SUSCEPTIBLE</code>, <code>INFECTIOUS</code>, <code>RECOVERED</code>) and a random, static location (no movement yet)</li>
+        <li>Define a rectangular study area and write a method that selects all people located inside it</li>
+        <li>Implement infection logic based on a distance radius and a probability</li>
+        <li>Validate by printing state changes to the console &mdash; do not run a continuous simulation yet</li>
+      </ul>
+      <p><strong>Submission:</strong> Upload <code>FirstNameLastNameW3.zip</code> with your <code>.java</code> files<br>
+      <strong>Deadline:</strong> Sunday at 5:00 PM (Vienna Time)</p>
     </div>
 
     <div class="footer">
