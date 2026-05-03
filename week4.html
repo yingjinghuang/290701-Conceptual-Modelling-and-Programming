@@ -25,7 +25,7 @@
       <a href="week1.html">Week 1: Data Types &amp; Control</a>
       <a href="week2.html">Week 2: Methods &amp; OO I</a>
       <a href="week3.html">Week 3: Methods &amp; OO II</a>
-      <a href="week4.html">Week 4: Inheritance I</a>
+      <a href="week4.html" class="active">Week 4: Inheritance I</a>
       <a href="week5.html">Week 5: Inheritance II</a>
       <a href="week6.html">Week 6: Midterm Exam</a>
       <a href="week7.html">Week 7: GUI &amp; Listeners</a>
@@ -52,8 +52,544 @@
       <p class="subtitle">04.05.2026</p>
     </div>
 
+    <h2>Slides</h2>
+    <p><a href="slides/Week4.pdf" style="font-weight:600;" target="_blank">Download Week 4 Slides (PDF) &rarr;</a></p>
+
+    <h2>Code Examples</h2>
+
+    <p>Four reference packages. The first two give you the tools (enums + <code>Random</code>); the next two show inheritance end to end (a plain <code>extends</code> hierarchy and an abstract base class); the last is the W3 SIR starter that this week&rsquo;s assignment evolves.</p>
+
+    <pre><code>Code/Week4/src/at/ac/univie/gis/week4/
+├── cardinal/
+│   ├── CardinalDirection.java       enum: type-safe constants
+│   ├── CardinalDirectionTest.java   tiny enum demo
+│   └── RandomLocations.java         java.util.Random: nextInt/Double/Boolean/Gaussian + seeding
+├── watercourse/
+│   ├── Watercourse.java             parent class with describe()
+│   ├── Spring.java                  plain helper (composition)
+│   ├── River.java                   extends Watercourse; super(...) + override
+│   └── WatercourseExample.java      ArrayList&lt;Watercourse&gt;, dynamic dispatch, instanceof
+├── geometry/
+│   ├── Geometry.java                ABSTRACT base; abstract getArea(), concrete describe()
+│   ├── Circle.java                  concrete subclass
+│   ├── Rectangle.java               concrete subclass
+│   └── GeometryExample.java         ArrayList&lt;Geometry&gt; of mixed shapes
+└── sir/
+    ├── Point.java                   2D point with distanceTo
+    ├── Person.java                  SUSCEPTIBLE / INFECTIOUS / REMOVED
+    ├── Disease.java                 stub for assignment task 3
+    └── Main.java                    W3 SIR starter — your W4 work lands here</code></pre>
+
+    <h3>1. <code>cardinal/</code> &mdash; enums and <code>Random</code></h3>
+
     <div class="info-box">
-      <p>Content for this week will be available closer to the lecture date.</p>
+      <p><strong>CardinalDirection.java</strong> &mdash; An enum: a small fixed set of named, type-safe constants. The compiler will not let you pass an invalid direction the way it would let you pass an invalid <code>int</code>.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week4.cardinal;
+
+/**
+ * An enum representing the four cardinal directions.
+ * Enums provide type-safe constants - you cannot accidentally use an invalid direction.
+ * Compare this to using plain integers (1=North, 2=South...) which are error-prone.
+ */
+public enum CardinalDirection {
+    NORTH, SOUTH, EAST, WEST
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>CardinalDirectionTest.java</strong> &mdash; Access an enum value with <code>ClassName.VALUE</code>. Enum values can be printed, compared with <code>==</code>, and passed around like any object.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week4.cardinal;
+
+public class CardinalDirectionTest {
+
+    public static void main(String[] args) {
+        // Access an enum value using ClassName.VALUE
+        System.out.println(CardinalDirection.WEST);
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>RandomLocations.java</strong> &mdash; Two takeaways. (1) <code>java.util.Random</code> gives four flavours of randomness &mdash; <code>nextInt</code>, <code>nextDouble</code>, <code>nextBoolean</code>, <code>nextGaussian</code> &mdash; where <code>Math.random()</code> only gives one. (2) Passing a <em>seed</em> to the constructor makes the sequence reproducible: the same seed always produces the same numbers. This is the tool the W4 assignment&rsquo;s &ldquo;reproducible placement&rdquo; task is built on.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week4.cardinal;
+
+import java.util.Random;
+
+public class RandomLocations {
+
+    public static void main(String[] args) {
+
+        // --- (1) The four methods on Random --------------------------------
+
+        // No seed → time-based, different every run.
+        Random rng = new Random();
+
+        // Random integer in [0, 501)  → e.g. an x-coordinate on a 500-wide grid.
+        int x = rng.nextInt(501);
+
+        // Random double in [0.0, 1.0) → multiply by area width to place a person.
+        double y = rng.nextDouble() * 500;
+
+        // Random true/false with equal probability.
+        boolean coin = rng.nextBoolean();
+
+        // Sample from the standard normal distribution N(0, 1) — handy for noise.
+        double noise = rng.nextGaussian();
+
+        System.out.println("x: " + x);
+        System.out.println("y: " + y);
+        System.out.println("coin: " + coin);
+        System.out.println("noise: " + noise);
+
+        // Math.random() is essentially shorthand for new Random().nextDouble().
+        // Fine for one-off rolls, but you cannot seed it.
+        System.out.println("Math.random(): " + Math.random());
+
+        // --- (2) Seeded Random for reproducible runs -----------------------
+
+        // Two generators built from the SAME seed produce the SAME sequence.
+        // Run this main method twice and these four numbers stay identical.
+        Random seeded = new Random(42);
+        System.out.println("\nSeeded run (always the same):");
+        for (int i = 0; i &lt; 4; i++) {
+            System.out.println("  " + seeded.nextDouble());
+        }
+    }
+}</code></pre>
+
+    <h3>2. <code>watercourse/</code> &mdash; <code>extends</code>, <code>super</code>, override, <code>instanceof</code></h3>
+
+    <div class="info-box">
+      <p><strong>Watercourse.java</strong> &mdash; Plain parent class. Holds a length and a default <code>describe()</code> that subclasses are free to override.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week4.watercourse;
+
+/**
+ * A simple base class representing a watercourse (any body of flowing water).
+ * Serves as the parent class in an inheritance hierarchy.
+ */
+public class Watercourse {
+
+    private double length;
+
+    public Watercourse(int length) {
+        this.length = length;
+    }
+
+    public double getLength() {
+        return length;
+    }
+
+    public void setLength(double length) {
+        this.length = length;
+    }
+
+    /**
+     * Returns a short description of this watercourse.
+     * Subclasses can OVERRIDE this method to add their own information,
+     * and call super.describe() to keep the parent's contribution.
+     */
+    public String describe() {
+        return "Watercourse of length " + length;
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>Spring.java</strong> &mdash; A plain helper class held by <code>River</code> via composition. A river HAS-A spring; a river is not a kind of spring.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week4.watercourse;
+
+public class Spring {
+
+    private String name;
+
+    public Spring(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>River.java</strong> &mdash; A <code>River</code> IS-A <code>Watercourse</code>. The constructor uses <code>super(length)</code> to hand the length up to the parent, and <code>describe()</code> is overridden so that <code>super.describe()</code> is augmented &mdash; not replaced &mdash; with the spring name.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week4.watercourse;
+
+/**
+ * A River is a specific kind of Watercourse that also has a Spring (origin).
+ *
+ * Demonstrates two inheritance ideas at once:
+ *   - super(length) in the constructor hands data up to the parent.
+ *   - describe() is OVERRIDDEN below, and uses super.describe() to add to —
+ *     not replace — the parent's behaviour.
+ */
+public class River extends Watercourse {
+
+    private Spring origin;
+
+    public River(int length, Spring origin) {
+        super(length);
+        this.origin = origin;
+    }
+
+    public Spring getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(Spring origin) {
+        this.origin = origin;
+    }
+
+    @Override
+    public String describe() {
+        return super.describe() + ", originating at spring " + origin.getName();
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>WatercourseExample.java</strong> &mdash; An <code>ArrayList&lt;Watercourse&gt;</code> holds both <code>Watercourse</code> and <code>River</code> objects because <code>River</code> IS-A <code>Watercourse</code>. <code>describe()</code> dispatches at runtime to the real object&rsquo;s implementation. <code>instanceof</code> with a pattern variable (<code>w instanceof River r</code>) is the safe way to ask &ldquo;is this actually a River?&rdquo; before reaching for River-only data.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week4.watercourse;
+
+import java.util.ArrayList;
+
+public class WatercourseExample {
+
+    public static void main(String[] args) {
+
+        ArrayList&lt;Watercourse&gt; watercourses = new ArrayList&lt;&gt;();
+
+        watercourses.add(new Watercourse(1246));
+        watercourses.add(new Watercourse(541));
+        watercourses.add(new Watercourse(1496));
+        watercourses.add(new Watercourse(996));
+        // A River fits in the same list because it extends Watercourse.
+        watercourses.add(new River(766, new Spring("Rheinquelle")));
+
+        for (Watercourse w : watercourses) {
+            // Dynamic dispatch: each object decides which describe() runs.
+            System.out.println(w.describe());
+
+            // Only Rivers carry a Spring. Use instanceof to ask the question
+            // safely before reaching for River-only data.
+            if (w instanceof River r) {
+                System.out.println("  spring object: " + r.getOrigin().getName());
+            }
+        }
+    }
+}</code></pre>
+
+    <h3>3. <code>geometry/</code> &mdash; <code>abstract</code> classes</h3>
+
+    <div class="info-box">
+      <p><strong>Geometry.java</strong> &mdash; <code>abstract</code> on the class blocks <code>new Geometry(...)</code> &mdash; a generic geometry is not a real shape. <code>abstract</code> on <code>getArea()</code> declares a contract: every concrete subclass <em>must</em> implement it. The concrete <code>describe()</code> calls the abstract <code>getArea()</code> &mdash; that call resolves to the subclass&rsquo;s implementation at runtime.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week4.geometry;
+
+/**
+ * An ABSTRACT base class for geometric shapes.
+ *
+ * 'abstract' on the class means: you cannot do `new Geometry(...)`.
+ * Geometry is not a real shape — every real shape is a Circle or Rectangle
+ * or some other concrete subclass.
+ *
+ * 'abstract' on getArea() means: every subclass MUST provide its own
+ * implementation. The compiler will refuse to compile a subclass that
+ * forgets to implement getArea().
+ */
+public abstract class Geometry {
+
+    private String label;
+
+    public Geometry(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    /**
+     * Abstract method — no body, just a contract.
+     * Each subclass fills this in with its own area formula.
+     */
+    public abstract double getArea();
+
+    /**
+     * A concrete method on an abstract class is allowed.
+     * It can call the abstract method — the call resolves to the
+     * subclass implementation at runtime (dynamic dispatch).
+     */
+    public String describe() {
+        return label + " has area " + getArea();
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>Circle.java</strong> &amp; <strong>Rectangle.java</strong> &mdash; Two concrete subclasses, each supplying its own area formula. Without <code>getArea()</code>, the file would not compile.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week4.geometry;
+
+public class Circle extends Geometry {
+
+    private double radius;
+
+    public Circle(String label, double radius) {
+        super(label);
+        this.radius = radius;
+    }
+
+    @Override
+    public double getArea() {
+        return Math.PI * radius * radius;
+    }
+}</code></pre>
+
+    <pre><code>package at.ac.univie.gis.week4.geometry;
+
+public class Rectangle extends Geometry {
+
+    private double width;
+    private double height;
+
+    public Rectangle(String label, double width, double height) {
+        super(label);
+        this.width = width;
+        this.height = height;
+    }
+
+    @Override
+    public double getArea() {
+        return width * height;
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>GeometryExample.java</strong> &mdash; You <em>can</em> declare <code>ArrayList&lt;Geometry&gt;</code> even though <code>Geometry</code> is abstract; you cannot <code>new Geometry(...)</code>. Each shape&rsquo;s own area formula runs at the right moment via dynamic dispatch.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week4.geometry;
+
+import java.util.ArrayList;
+
+public class GeometryExample {
+
+    public static void main(String[] args) {
+
+        ArrayList&lt;Geometry&gt; shapes = new ArrayList&lt;&gt;();
+        shapes.add(new Circle("c1", 3.0));
+        shapes.add(new Rectangle("r1", 4.0, 5.0));
+        shapes.add(new Circle("c2", 1.5));
+
+        // Polymorphism: same call, different formulas chosen per object.
+        for (Geometry g : shapes) {
+            System.out.println(g.describe());
+        }
+
+        // Uncomment to see the compile error abstract classes give you:
+        // Geometry g = new Geometry("nope");
+    }
+}</code></pre>
+
+    <h3>4. <code>sir/</code> &mdash; the W3 SIR starter (W4 assignment base)</h3>
+
+    <div class="info-box">
+      <p>Your starting point for this week&rsquo;s assignment. <code>Point</code> and <code>Person</code> are the W3 versions; <code>Disease</code> is an empty stub (task 3); <code>Main</code> still uses <code>Math.random()</code> and a deterministic state flip. The file headers point at exactly what each task changes.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week4.sir;
+
+public class Point {
+
+    private double x, y;
+
+    public Point(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    @Override
+    public String toString() {
+        return "Point{x=" + x + ", y=" + y + '}';
+    }
+
+    public double distanceTo(Point other) {
+        return Math.sqrt(Math.pow(x - other.getX(), 2) + Math.pow(y - other.getY(), 2));
+    }
+
+    public double getX() { return x; }
+    public void setX(double x) { this.x = x; }
+    public double getY() { return y; }
+    public void setY(double y) { this.y = y; }
+}</code></pre>
+
+    <pre><code>package at.ac.univie.gis.week4.sir;
+
+/**
+ * Represents a person in the SIR (Susceptible-Infectious-Removed) model.
+ *
+ * --- Week 4 assignment notes ---
+ *
+ *   - move() currently uses Math.random(). Mandatory task 1 (reproducible
+ *     placement) means every random draw in your simulation should come from
+ *     a controlled, seeded source.
+ *
+ *   - changeState() currently flips state deterministically. Mandatory task 2
+ *     (stochastic infection) means SUSCEPTIBLE -> INFECTIOUS should only
+ *     happen when a probability roll succeeds.
+ *
+ *   - The state constants below could move to Disease as part of task 3, but
+ *     that is itself a design choice — they could equally well stay here.
+ *
+ * Note: The states are modeled as integer constants here. Using an enum would
+ * be cleaner — see the CardinalDirection example in the cardinal/ package.
+ */
+public class Person {
+
+    public static final int SUSCEPTIBLE = 1;
+    public static final int INFECTIOUS = 2;
+    public static final int REMOVED = 3;
+
+    private Point location;
+    private int state = SUSCEPTIBLE;
+
+    public Person(Point location, int state) {
+        this.location = location;
+        this.state = state;
+    }
+
+    public int changeState() {
+        if (state == SUSCEPTIBLE) {
+            state = INFECTIOUS;
+        } else if (state == INFECTIOUS) {
+            state = REMOVED;
+        }
+        return state;
+    }
+
+    public void move() {
+        location.setX(Math.random() * 100);
+        location.setY(Math.random() * 100);
+    }
+
+    public Point getLocation() { return location; }
+    public void setLocation(Point location) { this.location = location; }
+    public int getState() { return state; }
+
+    public String getStateName() {
+        switch (state) {
+            case SUSCEPTIBLE: return "SUSCEPTIBLE";
+            case INFECTIOUS:  return "INFECTIOUS";
+            case REMOVED:     return "REMOVED";
+            default:          return "UNKNOWN";
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Person{location=" + location + ", state=" + getStateName() + '}';
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>Disease.java</strong> &mdash; Intentionally empty. Mandatory task 3 asks you to put the infection probability and infection radius here; the stretch goal asks you to make <code>Disease</code> abstract and add concrete subclasses (e.g. airborne vs contact-based). The <code>geometry/</code> package shows that pattern end to end.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week4.sir;
+
+public class Disease {
+
+    // Your design goes here.
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>Main.java</strong> &mdash; The W3 simulation: builds a hard-coded population and steps the first (infectious) person against the rest with a fixed distance threshold of 5. Most of your W4 changes land here &mdash; how to feed in a seeded <code>Random</code>, how to do a real probability roll, and how to read the radius and probability from <code>Disease</code> instead of from magic numbers.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week4.sir;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+
+public class Main {
+
+    ArrayList&lt;Person&gt; population;
+
+    public Main() {
+        population = new ArrayList&lt;Person&gt;();
+        population.add(new Person(new Point(10, 10), Person.INFECTIOUS));
+        population.add(new Person(new Point(11, 12), Person.SUSCEPTIBLE));
+        population.add(new Person(new Point(12, 13), Person.SUSCEPTIBLE));
+        population.add(new Person(new Point(21, 19), Person.SUSCEPTIBLE));
+        population.add(new Person(new Point(15, 11), Person.SUSCEPTIBLE));
+        population.add(new Person(new Point(17, 16), Person.SUSCEPTIBLE));
+        population.add(new Person(new Point(23, 22), Person.SUSCEPTIBLE));
+    }
+
+    public static void main(String[] args) {
+        Main SIRrun = new Main();
+        SIRrun.SIRstep();
+    }
+
+    /**
+     * A single SIR step: the first person (infectious) infects anyone within distance 5.
+     * Simplified — only the first person is checked as a source.
+     */
+    public void SIRstep() {
+        Iterator&lt;Person&gt; SIRcheck = population.iterator();
+
+        Person temp = null;
+        if (SIRcheck.hasNext())
+            temp = SIRcheck.next();
+
+        while (SIRcheck.hasNext()) {
+            Person toCheck = SIRcheck.next();
+            System.out.println("\nBefore: " + toCheck);
+
+            if (temp.getLocation().distanceTo(toCheck.getLocation()) &lt; 5)
+                toCheck.changeState();
+
+            System.out.println("After: " + toCheck);
+        }
+    }
+
+    /**
+     * TODO: Compare ALL pairs of persons, not just the first one against the rest.
+     */
+    public void SIRstepAll() {
+        // TBD - Exercise for students
+    }
+}</code></pre>
+
+    <h2>Assignment</h2>
+    <div class="assignment-box">
+      <h3>Week 4 Assignment</h3>
+      <p><strong>Reading:</strong> Chapters on inheritance and abstract classes.</p>
+      <p><strong>Coding:</strong> Evolve your W3 SIR code with this week&rsquo;s tools.</p>
+      <ul>
+        <li><strong>Reproducible random placement.</strong> Every <code>Person</code> ends up at a random location inside the rectangular study area. Two back-to-back runs of your simulation should produce the <strong>same</strong> starting layout &mdash; so you can debug a weird run. (You decide how.)</li>
+        <li><strong>Stochastic infection.</strong> When an infectious person is within the infection radius of a susceptible person, the susceptible becomes infectious <strong>with the given probability</strong> &mdash; sometimes yes, sometimes no, in proportion to that probability. The upgrade from W3: there your &ldquo;risk&rdquo; was a number you returned; here the state actually changes (or doesn&rsquo;t). Removed people don&rsquo;t participate.</li>
+        <li><strong>One place for the disease parameters.</strong> The infection probability and the infection radius should live in one designated location &mdash; a <code>Disease</code> class &mdash; and every place in the rest of your code should refer to them through that class. No more magic numbers scattered through <code>Simulation</code> and <code>Person</code>.</li>
+        <li><em>More advanced:</em> support <strong>multiple kinds of disease</strong> (e.g. an airborne one and a contact-based one) whose transmission probabilities differ. Your simulation should be able to run with any one of them. And the generic <code>Disease</code> itself should not be something you can instantiate directly &mdash; there&rsquo;s no such thing as a &ldquo;generic disease,&rdquo; only specific ones.</li>
+      </ul>
+      <p><strong>Submission:</strong> Upload <code>FirstNameLastNameW4.zip</code> with your <code>.java</code> files<br>
+      <strong>Deadline:</strong> Sunday at 5:00 PM (Vienna Time)</p>
     </div>
 
     <div class="footer">
