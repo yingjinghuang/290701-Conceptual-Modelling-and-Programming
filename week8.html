@@ -29,7 +29,7 @@
       <a href="week5.html">Week 5: Inheritance II</a>
       <a href="week6.html">Week 6: Midterm Exam</a>
       <a href="week7.html">Week 7: GUI &amp; Listeners</a>
-      <a href="week8.html">Week 8: GUI, File I/O &amp; MVC</a>
+      <a href="week8.html" class="active">Week 8: GUI, File I/O &amp; MVC</a>
       <a href="week9.html">Week 9: Ripley&rsquo;s K Example</a>
       <a href="week10.html">Week 10: Libraries &amp; Exceptions</a>
       <a href="week11.html">Week 11: Final Exam</a>
@@ -49,18 +49,43 @@
 
     <div class="hero">
       <h1>Week 8: GUI, File I/O and MVC</h1>
-      <p class="subtitle">08.06.2026</p>
+      <p class="subtitle">MVC, file I/O from a GIS angle, exception handling &middot; 08.06.2026</p>
     </div>
 
-    <div class="info-box">
-      <p>Content for this week will be available closer to the lecture date.</p>
+    <h2>Slides</h2>
+    <p><a href="slides/Week8.pdf" style="font-weight:600;" target="_blank">Download Week 8 Slides (PDF) &rarr;</a></p>
+
+    <!--
+    Outline to fill in closer to the lecture date:
+
+    <h2>Code Examples</h2>
+    <pre><code>Code/Week8/src/at/ac/univie/gis/week8/
+├── csv/        ViennaPOI.java
+├── grid/       MinimalGridAndNeighbors.java
+├── osm/        OSMViennaPOI.java
+└── osmdata/    OSMViennaPOIData.java, POI.java
+    </code></pre>
+    -->
+
+    <!-- <h2>Mandatory Assignment</h2>
+    <div class="assignment-box">
+      <h3>SIR Cellular Automaton (Mandatory, due Week 11)</h3>
+      <p><strong>Reading:</strong> Chapters on MVC, file I/O, and exceptions.</p>
+      <p><strong>Coding:</strong></p>
+      <ul>
+        <li><strong>SIR cellular automaton.</strong> Simulate disease spread across a grid of cells. Each cell holds an agent that&rsquo;s either <em>susceptible</em>, <em>infectious</em>, or <em>removed</em>. At each tick, agents can move to neighbouring cells, and infectious agents can infect susceptible neighbours with a configurable probability. The infection probability and a stay-at-home rate (the fraction of agents that stay put on a given tick) should be configurable. The initial agent density should be random but configurable. Show the simulation working under different settings.</li>
+        <li><strong>Keep it simple.</strong> No need for a full object model with a <code>Person</code> class. A two-dimensional <code>int[][]</code> grid where each cell&rsquo;s value encodes the state is plenty &mdash; <code>0</code> empty, <code>1</code> susceptible, <code>2</code> infectious, <code>3</code> removed. A working, correct, clearly-coded simulation in 200&ndash;400 lines of Java is the target. Clean code beats clever code.</li>
+        <li><strong>Suggested build order.</strong> Get a static initial state rendering correctly first. Then add <code>tick()</code>. Then make the parameters configurable. Then add GUI controls.</li>
+      </ul>
+      <p><strong>Submission:</strong> Upload <code>FirstNameLastNameSIR.zip</code> with all your <code>.java</code> files<br>
+      <strong>Deadline:</strong> Week 11 &mdash; due on the day of the final exam (29.06.2026)</p>
     </div>
 
     <div class="footer">
       <p>Conceptual Modelling and Programming &middot; University of Vienna &middot; 2026S</p>
     </div>
   </div>
-</div>
+</div> -->
 
 <script src="script.js"></script>
 </body>

@@ -26,7 +26,7 @@
       <a href="week2.html">Week 2: Methods &amp; OO I</a>
       <a href="week3.html">Week 3: Methods &amp; OO II</a>
       <a href="week4.html">Week 4: Inheritance I</a>
-      <a href="week5.html">Week 5: Inheritance II</a>
+      <a href="week5.html" class="active">Week 5: Inheritance II</a>
       <a href="week6.html">Week 6: Midterm Exam</a>
       <a href="week7.html">Week 7: GUI &amp; Listeners</a>
       <a href="week8.html">Week 8: GUI, File I/O &amp; MVC</a>
@@ -49,11 +49,323 @@
 
     <div class="hero">
       <h1>Week 5: Inheritance and Polymorphism II</h1>
-      <p class="subtitle">11.05.2026</p>
+      <p class="subtitle">Polymorphism, Interfaces, and Cellular Automata &middot; 11.05.2026</p>
     </div>
 
+    <h2>Slides</h2>
+    <p><a href="slides/Week5.pdf" style="font-weight:600;" target="_blank">Download Week 5 Slides (PDF) &rarr;</a></p>
+
+    <h2>Code Examples</h2>
+
+    <p>Three reference packages. The first is the W4 abstract <code>Geometry</code> hierarchy carried forward as the starter for Task 1 (add <code>Drawable</code> + <code>Comparable</code>). The second is the in-class Game of Life template you fill in during the lecture. The third is the cached-length <code>PolyLine</code> &mdash; the worked example for class invariants.</p>
+
+    <pre><code>Code/Week5/src/at/ac/univie/gis/week5/
+├── geometry/
+│   ├── Geometry.java                   abstract base with label + abstract getArea()
+│   ├── Circle.java                     concrete subclass — Task 1 adds Drawable + Comparable
+│   └── Rectangle.java                  concrete subclass — Task 1 adds Drawable + Comparable
+├── gameoflife/
+│   └── GameOfLifeInClassTemplate.java  10×10 boolean[][], main loop wired; you fill in tick/neighbours/toString
+└── polyline/
+    ├── Point.java                      2D point with distanceTo
+    ├── PolyLine.java                   has-a ArrayList&lt;Point&gt;, cached length kept in sync by add()
+    └── Main.java                       small driver showing the cached length stays consistent</code></pre>
+
+    <h3>1. <code>geometry/</code> &mdash; starter for Task 1 (interfaces on top of an abstract base)</h3>
+
     <div class="info-box">
-      <p>Content for this week will be available closer to the lecture date.</p>
+      <p><strong>Geometry.java</strong> &mdash; The same abstract base class from W4. Holds the shared <code>label</code> field and the abstract <code>getArea()</code> contract. Keep this file as it is &mdash; the parent type for shared <em>state</em>. The new capabilities (<code>Drawable</code>, <code>Comparable</code>) belong on the subclasses, as interfaces.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week5.geometry;
+
+public abstract class Geometry {
+
+    private String label;
+
+    public Geometry(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    /**
+     * Abstract method - no body, just a contract.
+     * Each subclass fills this in with its own area formula.
+     */
+    public abstract double getArea();
+
+    /**
+     * A concrete method on an abstract class is allowed.
+     * It can call the abstract method - the call resolves to the
+     * subclass implementation at runtime (dynamic dispatch).
+     */
+    public String describe() {
+        return label + " has area " + getArea();
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>Circle.java</strong> &amp; <strong>Rectangle.java</strong> &mdash; Two concrete subclasses, each with its own area formula. Task 1 asks you to add <code>implements Drawable, Comparable&lt;Geometry&gt;</code> here: <code>extends Geometry</code> stays for the shared state, and the two interfaces add the new capabilities. This is slide 13 in code form &mdash; <em>single inheritance for state, multiple interfaces for capabilities</em>.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week5.geometry;
+
+public class Circle extends Geometry {
+
+    private double radius;
+
+    public Circle(String label, double radius) {
+        super(label);
+        this.radius = radius;
+    }
+
+    @Override
+    public double getArea() {
+        return Math.PI * radius * radius;
+    }
+}</code></pre>
+
+    <pre><code>package at.ac.univie.gis.week5.geometry;
+
+public class Rectangle extends Geometry {
+
+    private double width;
+    private double height;
+
+    public Rectangle(String label, double width, double height) {
+        super(label);
+        this.width = width;
+        this.height = height;
+    }
+
+    @Override
+    public double getArea() {
+        return width * height;
+    }
+}</code></pre>
+
+    <h3>2. <code>gameoflife/</code> &mdash; the in-class template</h3>
+
+    <div class="info-box">
+      <p><strong>GameOfLifeInClassTemplate.java</strong> &mdash; A 10&times;10 <code>boolean[][]</code> seeded with a small starter pattern, plus a <code>main</code> loop that prints / ticks / sleeps. Three methods are stubbed for you to fill in. The point of the exercise is the <em>copy-and-swap</em> pattern in <code>tick()</code>: a fresh <code>nextGame</code> array is allocated, every cell&rsquo;s next state is computed from the current <code>game</code>, then a single assignment commits the new generation. This is the same pattern Task 3 asks you to apply to the SIR step.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week5.gameoflife;
+
+/**
+ * Conway's Game of Life - Template for in-class exercise.
+ *
+ * Rules (to implement in tick()):
+ * 1. Any live cell with fewer than 2 live neighbors dies (underpopulation).
+ * 2. Any live cell with 2 or 3 live neighbors survives.
+ * 3. Any live cell with more than 3 live neighbors dies (overpopulation).
+ * 4. Any dead cell with exactly 3 live neighbors becomes alive (reproduction).
+ *
+ * Students should implement: tick(), neighbours(), and toString().
+ */
+public class GameOfLifeInClassTemplate {
+
+    // The game grid: true = alive, false = dead
+    private boolean[][] game =
+            {
+                    {false, false, false, false, false, false, false, false, false, false},
+                    {false, false, false, true,  true,  false, false, false, false, false},
+                    {false, false, false, true,  true,  false, false, false, false, false},
+                    {false, false, false, false, false, false, false, false, false, false},
+                    {false, false, false, false, false, false, false, false, false, false},
+                    {false, false, false, true,  true,  false, true,  false, false, false},
+                    {false, true,  true,  true,  false, false, false, false, false, false},
+                    {false, true,  false, false, false, true,  false, false, false, false},
+                    {false, false, false, false, true,  false, false, false, false, false},
+                    {false, false, false, false, false, false, false, false, false, false}
+            };
+
+    public GameOfLifeInClassTemplate() {
+        // Constructor - add initialization code if needed
+    }
+
+    /**
+     * Advances the simulation by one step, applying the Game of Life rules.
+     * IMPORTANT: All cells must be updated simultaneously, so we write to a new array
+     * and then replace the old one (otherwise earlier updates would affect later ones).
+     */
+    public void tick() {
+        boolean[][] nextGame = new boolean[game.length][game[0].length];
+        // TODO: Apply the four rules using neighbours() to fill nextGame, then set game = nextGame
+    }
+
+    /**
+     * Counts the number of live neighbors around cell (i, j).
+     * Uses Queen's adjacency (8 surrounding cells). Must handle edge cases at grid boundaries.
+     */
+    public int neighbours(int i, int j) {
+        int count = 0;
+        // TODO: Check all 8 surrounding cells, incrementing count for each live neighbor
+        return count;
+    }
+
+    /**
+     * Returns a string representation of the grid for console output.
+     * For example, use '#' for alive and '.' for dead cells.
+     */
+    @Override
+    public String toString() {
+        // TODO: Build a string representation of the grid
+        return "";
+    }
+
+    /**
+     * Main loop: prints the grid, advances one tick, waits, and repeats forever.
+     */
+    public static void main(String[] args) throws InterruptedException {
+        GameOfLifeInClassTemplate game1 = new GameOfLifeInClassTemplate();
+        while (true) {
+            System.out.println(game1);
+            game1.tick();
+            Thread.sleep(500); // Pause between frames (increase to 2000ms for debugging)
+        }
+    }
+}</code></pre>
+
+    <h3>3. <code>polyline/</code> &mdash; class invariants on a cached field</h3>
+
+    <div class="info-box">
+      <p><strong>PolyLine.java</strong> &mdash; The <code>ArrayList&lt;Point&gt;</code> is <code>private</code>, and a cached <code>length</code> field is kept in sync by <code>add()</code>: the new segment&rsquo;s distance is added <em>in the same step</em> as the point itself. Because the list is private, no outside code can append behind <code>PolyLine</code>&rsquo;s back &mdash; that&rsquo;s what lets the class promise &ldquo;<em>my stored <code>length</code> always equals the actual sum of segment lengths</em>.&rdquo; That promise is the <strong>class invariant</strong>; <code>private</code> fields plus a single update gate are what make it stick. <code>computeLength()</code> exists as a from-scratch fallback after bulk modifications; <code>getLength()</code> is a cheap field read.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week5.polyline;
+
+import java.util.ArrayList;
+
+public class PolyLine {
+
+    private ArrayList&lt;Point&gt; pointlist;
+    private double length = 0;
+
+    public PolyLine() {
+        pointlist = new ArrayList&lt;Point&gt;();
+        // Initialize length to ensure getLength() returns 0 even before any points are added
+        computeLength();
+    }
+
+    /**
+     * Adds a point to the polyline and updates the total length.
+     * This is why encapsulation matters: without this method, a user could add points
+     * directly to the list and getLength() would return a stale (incorrect) value.
+     */
+    public boolean add(Point e) {
+        if (!pointlist.isEmpty()) {
+            // Add the distance from the last point to the new point
+            length += pointlist.get(pointlist.size() - 1).distanceTo(e);
+        }
+        return pointlist.add(e);
+    }
+
+    public Point get(int index) {
+        return pointlist.get(index);
+    }
+
+    public int size() {
+        return pointlist.size();
+    }
+
+    /**
+     * Recomputes the total length from scratch by summing distances between consecutive points.
+     * Normally not needed since add() keeps length up-to-date, but useful after modifications.
+     */
+    public double computeLength() {
+        length = 0; // Reset before summing - the loop adds to length
+        for (int i = 0; i &lt; size() - 1; i++) {
+            length += Math.sqrt(
+                    Math.pow((get(i).getX() - get(i + 1).getX()), 2) +
+                    Math.pow((get(i).getY() - get(i + 1).getY()), 2));
+        }
+        return length;
+    }
+
+    /**
+     * Returns the current total length of the polyline.
+     * Always up-to-date because add() updates it incrementally.
+     */
+    public double getLength() {
+        return length;
+    }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>Point.java</strong> &mdash; A plain 2D point with <code>distanceTo</code>. Same shape as the W3/W4 <code>Point</code>, lifted into the W5 package alongside <code>PolyLine</code>.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week5.polyline;
+
+public class Point {
+
+    private double x, y;
+
+    public Point(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    @Override
+    public String toString() {
+        return "Point{x=" + x + ", y=" + y + '}';
+    }
+
+    public double distanceTo(Point other) {
+        return Math.sqrt(Math.pow(x - other.getX(), 2) + Math.pow(y - other.getY(), 2));
+    }
+
+    public double getX() { return x; }
+    public void setX(double x) { this.x = x; }
+    public double getY() { return y; }
+    public void setY(double y) { this.y = y; }
+}</code></pre>
+
+    <div class="info-box">
+      <p><strong>Main.java</strong> &mdash; A small driver. Adds points one by one, then prints both <code>getLength()</code> (the cached value) and <code>computeLength()</code> (the from-scratch recomputation) so you can see the invariant holding: the two numbers agree.</p>
+    </div>
+
+    <pre><code>package at.ac.univie.gis.week5.polyline;
+
+public class Main {
+    public static void main(String[] args) {
+
+        // Create an empty polyline
+        PolyLine poly = new PolyLine();
+        System.out.println("Empty polyline's length: " + poly.getLength());
+
+        // A 1-point polyline has length 0 (no segments yet)
+        // Whether a 1-point polyline should be allowed is a design decision
+        poly.add(new Point(5, 5));
+        System.out.println("One-point polyline's length: " + poly.getLength());
+
+        // Adding more points creates line segments, increasing the total length
+        poly.add(new Point(6, 6));
+        poly.add(new Point(8, 7));
+        poly.add(new Point(9, 10));
+
+        // add() keeps the length up-to-date; computeLength() recalculates from scratch
+        // Both should return the same result
+        System.out.println("Polyline's length: " + poly.computeLength());
+    }
+}</code></pre>
+
+    <h2>Assignment</h2>
+    <div class="assignment-box">
+      <h3>Week 5 Assignment</h3>
+      <p><strong>Reading:</strong> Chapters on interfaces and 2D arrays.</p>
+      <p><strong>Coding:</strong> Three small tasks &mdash; interface practice, finish the Game of Life template, fix the SIR step with copy-and-swap.</p>
+      <ul>
+        <li><strong>Drawable + Comparable on Geometry.</strong> In <code>Code/Week5/geometry/</code>, declare a small <code>Drawable</code> interface with one method <code>String draw()</code> returning a one-line text representation. Make <code>Circle</code> and <code>Rectangle</code> implement <strong>both</strong> <code>Drawable</code> and <code>Comparable&lt;Geometry&gt;</code> (<code>compareTo</code> orders by area). In a small <code>main</code>, build a <code>List&lt;Geometry&gt;</code> mixing circles and rectangles, sort with <code>Collections.sort(list)</code>, and print each via <code>draw()</code>. This is the design rule from today&rsquo;s lecture in code: <em>one parent for shared state, multiple interfaces for capabilities</em>.</li>
+        <li><strong>Finish the Game of Life template.</strong> Open <code>gameoflife/GameOfLifeInClassTemplate</code> and fill in the three <code>TODO</code> methods &mdash; <code>tick()</code> with copy-and-swap, <code>neighbours()</code> with edge guards (out-of-bounds neighbours count as dead), and a <code>toString()</code> using <code>#</code> for alive and <code>.</code> for dead. Test on the blinker. The 2D + copy-and-swap pattern you write here is the foundation for the W8&ndash;W10 mandatory SIR cellular-automaton assignment.</li>
+        <li><strong>Fix the SIR step with copy-and-swap.</strong> Refactor your W4 <code>Code/Week4/sir/Main.java</code> <code>SIRstep</code> so every person&rsquo;s next state is computed from the population&rsquo;s <em>current</em> state, then applied at the end. The cleanest shape is a parallel <code>int[] nextStates</code> aligned with <code>population</code>: compute next states for everyone first, then walk the array once and apply. Same pattern as Game of Life, just on a 1D list of <code>Person</code> instead of a 2D grid.</li>
+      </ul>
+      <p><strong>Submission:</strong> Upload <code>FirstNameLastNameW5.zip</code> with your <code>.java</code> files<br>
+      <strong>Deadline:</strong> Sunday at 5:00 PM (Vienna Time) &mdash; extended to right before Week 7 so you have time to prepare for the midterm.</p>
     </div>
 
     <div class="footer">
