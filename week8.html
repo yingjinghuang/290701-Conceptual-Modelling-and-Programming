@@ -49,43 +49,298 @@
 
     <div class="hero">
       <h1>Week 8: GUI, File I/O and MVC</h1>
-      <p class="subtitle">MVC, file I/O from a GIS angle, exception handling &middot; 08.06.2026</p>
+      <p class="subtitle">MVC, file I/O from a GIS angle, images as pixel grids, exception handling &middot; 08.06.2026</p>
     </div>
 
     <h2>Slides</h2>
     <p><a href="slides/Week8.pdf" style="font-weight:600;" target="_blank">Download Week 8 Slides (PDF) &rarr;</a></p>
 
-    <!--
-    Outline to fill in closer to the lecture date:
-
     <h2>Code Examples</h2>
-    <pre><code>Code/Week8/src/at/ac/univie/gis/week8/
-├── csv/        ViennaPOI.java
-├── grid/       MinimalGridAndNeighbors.java
-├── osm/        OSMViennaPOI.java
-└── osmdata/    OSMViennaPOIData.java, POI.java
-    </code></pre>
-    -->
 
-    <!-- <h2>Mandatory Assignment</h2>
+    <pre><code>Code/Week8/src/at/ac/univie/gis/week8/
+├── mvc/                       the MVC pattern, before and after
+│   ├── before/MonolithicCanvas.java   one JPanel does everything (the problem)
+│   └── after/                          the same program, split three ways
+│       ├── PointsModel.java            data + logic, NO Swing imports
+│       ├── CanvasView.java             reads the model and draws
+│       └── CanvasController.java       mouse + buttons, owns main()
+├── digitiser/                 "Campus Digitiser" — the week's ideas in one app
+│   ├── model/      FeatureType, GeoFeature, GeoReference, MapModel
+│   ├── io/         WktFile          read/write geometry as WKT text
+│   ├── view/       MapView          draws the basemap + features
+│   └── controller/ MapController    ImageIO basemap, mouse, buttons, main()
+└── sir/                       your assignment template (see below)</code></pre>
+
+    <h3>1. <code>mvc/</code> &mdash; Model&ndash;View&ndash;Controller, before and after</h3>
+
+    <div class="info-box">
+      <p><strong>The problem.</strong> <code>MonolithicCanvas.java</code> is last week&rsquo;s click-to-draw canvas: a single <code>JPanel</code> that holds the data, draws it, <em>and</em> handles the mouse and buttons. Three different jobs in one class means three different reasons to change it &mdash; and the Clear button even reaches straight into the data with <code>canvas.points.clear()</code>.</p>
+      <p><strong>The fix.</strong> The <code>after/</code> package is the <em>same program</em>, split into three classes with one responsibility each. Run either version &mdash; they behave identically on screen &mdash; but now changing the look touches only the View, and changing what a click means touches only the Controller.</p>
+    </div>
+
+    <p><strong>Model</strong> &mdash; data and logic, with the iron rule: no <code>java.awt.*</code>, no <code>javax.swing.*</code>.</p>
+
+    <pre><code>package at.ac.univie.gis.week8.mvc.after;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * MODEL (the "M" in MVC). Holds the data and the logic that operates on it,
+ * and NOTHING else. Here the "data" is just the list of clicked points.
+ *
+ * THE IRON RULE: a Model must not import from java.awt.* or javax.swing.*.
+ * That is also why each point is a plain int[]{x, y} rather than
+ * java.awt.Point — pulling in java.awt.Point would chain the Model to the GUI.
+ */
+public class PointsModel {
+
+    private final List&lt;int[]&gt; points = new ArrayList&lt;&gt;();
+
+    /** Add a point at pixel position (x, y). */
+    public void add(int x, int y) {
+        points.add(new int[]{x, y});
+    }
+
+    /** Remove every point. */
+    public void clear() {
+        points.clear();
+    }
+
+    /** How many points we currently hold. */
+    public int size() {
+        return points.size();
+    }
+
+    /**
+     * Hand the View a READ-ONLY view of the points. Only the Model changes its
+     * own data — every real change goes through add()/clear().
+     */
+    public List&lt;int[]&gt; getPoints() {
+        return Collections.unmodifiableList(points);
+    }
+}</code></pre>
+
+    <p><strong>View</strong> &mdash; reads the model and draws. No data of its own, no listeners.</p>
+
+    <pre><code>package at.ac.univie.gis.week8.mvc.after;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.util.List;
+
+import javax.swing.JPanel;
+
+/**
+ * VIEW (the "V" in MVC). Its only job is to DRAW the model. It is given a
+ * reference to the model and reads from it; it does not own the data and it
+ * does not handle input.
+ */
+public class CanvasView extends JPanel {
+
+    private static final int DOT_RADIUS = 6;
+
+    private final PointsModel model;
+
+    public CanvasView(PointsModel model) {
+        this.model = model;
+        setPreferredSize(new Dimension(600, 500));
+        setBackground(Color.WHITE);
+    }
+
+    /**
+     * Swing calls this whenever the panel must be (re)drawn — never call it
+     * directly. After the data changes the Controller calls repaint(), and Swing
+     * then calls this method, redrawing from the current model state.
+     */
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                             RenderingHints.VALUE_ANTIALIAS_ON);
+
+        List&lt;int[]&gt; points = model.getPoints(); // read from the model
+
+        g2d.setColor(Color.BLUE);
+        for (int i = 1; i &lt; points.size(); i++) {
+            int[] a = points.get(i - 1);
+            int[] b = points.get(i);
+            g2d.drawLine(a[0], a[1], b[0], b[1]);
+        }
+
+        g2d.setColor(Color.RED);
+        for (int[] p : points) {
+            g2d.fillOval(p[0] - DOT_RADIUS, p[1] - DOT_RADIUS,
+                         DOT_RADIUS * 2, DOT_RADIUS * 2);
+        }
+    }
+}</code></pre>
+
+    <p><strong>Controller</strong> &mdash; the glue, and the program&rsquo;s entry point. The click cycle is the whole of interactive programming: <em>listen &rarr; update the model &rarr; ask the view to repaint</em>.</p>
+
+    <pre><code>package at.ac.univie.gis.week8.mvc.after;
+
+import java.awt.BorderLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+/**
+ * CONTROLLER (the "C" in MVC). Also the program's entry point. Glue between
+ * Model and View: listens for input, updates the Model, asks the View to
+ * repaint. Compare clear() with the monolithic version — here it calls a model
+ * METHOD (model.clear()) instead of reaching into the model's fields.
+ */
+public class CanvasController {
+
+    private final PointsModel model;
+    private final CanvasView view;
+
+    public CanvasController(PointsModel model, CanvasView view) {
+        this.model = model;
+        this.view = view;
+
+        view.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                model.add(e.getX(), e.getY()); // 1. update the model
+                view.repaint();                 // 2. ask the view to refresh
+            }
+        });
+    }
+
+    public void start() {
+        JButton clear = new JButton("Clear");
+        clear.addActionListener(e -&gt; {
+            model.clear();   // go through the model's public method...
+            view.repaint();  // ...then refresh the screen
+        });
+
+        JPanel controls = new JPanel();
+        controls.add(clear);
+
+        JFrame frame = new JFrame("MVC Canvas (after): click to draw");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
+        frame.add(view, BorderLayout.CENTER);
+        frame.add(controls, BorderLayout.SOUTH);
+        frame.pack();
+        frame.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        // The one place that knows all three parts: create, connect, start.
+        PointsModel model = new PointsModel();
+        CanvasView view = new CanvasView(model);
+        CanvasController controller = new CanvasController(model, view);
+        controller.start();
+    }
+}</code></pre>
+
+    <h3>2. <code>digitiser/</code> &mdash; the Campus Digitiser</h3>
+
+    <div class="info-box">
+      <p><strong>One small app, every Week-8 idea in one place.</strong> Load a map of the area around the NIG building, click to trace your walk to campus (a <em>route</em> &rarr; WKT <code>LINESTRING</code>) or a building outline (a <em>footprint</em> &rarr; WKT <code>POLYGON</code>), then save your work to a file and load it back. It is strict MVC: the model holds geometry in lon/lat with <em>no</em> Swing; the view draws the basemap and features; the controller handles input and loads the basemap with <code>ImageIO</code>. A missing basemap, or a corrupt line in a saved file, never crashes it &mdash; it falls back or skips. Run <code>controller.MapController</code>.</p>
+    </div>
+
+    <p>The file-I/O and exception story lives in one small class, <code>io/WktFile.java</code> &mdash; writing with <code>FileWriter</code>/<code>BufferedWriter</code> in a try-with-resources block, reading with <code>BufferedReader.readLine()</code>, and two recovery patterns (fall back, or skip a bad line):</p>
+
+    <pre><code>package at.ac.univie.gis.week8.digitiser.io;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import at.ac.univie.gis.week8.digitiser.model.GeoFeature;
+
+/**
+ * Reads and writes digitised features as text — one WKT geometry per line.
+ * The whole week's file-I/O and exception story in one class.
+ */
+public final class WktFile {
+
+    private WktFile() { }
+
+    /**
+     * Write every feature to 'path', one WKT line each. try-with-resources
+     * closes the file automatically, even if writing throws — the modern
+     * replacement for a manual finally block. We let IOException propagate so
+     * the controller (which has the UI) can decide how to report it.
+     */
+    public static void save(List&lt;GeoFeature&gt; features, String path) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(
+                new FileWriter(path, StandardCharsets.UTF_8))) {
+            for (GeoFeature feature : features) {
+                writer.write(feature.toWkt());
+                writer.newLine();
+            }
+        } // writer.close() happens here automatically
+    }
+
+    /**
+     * Read features back from 'path'. Two recovery patterns:
+     *   FALLBACK — file missing/unreadable -&gt; return an empty list.
+     *   SKIP     — one corrupt line -&gt; log it and keep reading the rest.
+     */
+    public static List&lt;GeoFeature&gt; load(String path) {
+        List&lt;GeoFeature&gt; features = new ArrayList&lt;&gt;();
+        try (BufferedReader reader = new BufferedReader(
+                new FileReader(path, StandardCharsets.UTF_8))) {
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.isBlank()) continue;
+                try {
+                    features.add(GeoFeature.parseWkt(line));
+                } catch (IllegalArgumentException bad) {
+                    // one bad row must not sink the whole load
+                    System.err.println("Skipping bad line: " + bad.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Could not read " + path + "; starting empty.");
+        }
+        return features;
+    }
+}</code></pre>
+
+    <h2>Mandatory Assignment</h2>
     <div class="assignment-box">
-      <h3>SIR Cellular Automaton (Mandatory, due Week 11)</h3>
-      <p><strong>Reading:</strong> Chapters on MVC, file I/O, and exceptions.</p>
-      <p><strong>Coding:</strong></p>
-      <ul>
-        <li><strong>SIR cellular automaton.</strong> Simulate disease spread across a grid of cells. Each cell holds an agent that&rsquo;s either <em>susceptible</em>, <em>infectious</em>, or <em>removed</em>. At each tick, agents can move to neighbouring cells, and infectious agents can infect susceptible neighbours with a configurable probability. The infection probability and a stay-at-home rate (the fraction of agents that stay put on a given tick) should be configurable. The initial agent density should be random but configurable. Show the simulation working under different settings.</li>
-        <li><strong>Keep it simple.</strong> No need for a full object model with a <code>Person</code> class. A two-dimensional <code>int[][]</code> grid where each cell&rsquo;s value encodes the state is plenty &mdash; <code>0</code> empty, <code>1</code> susceptible, <code>2</code> infectious, <code>3</code> removed. A working, correct, clearly-coded simulation in 200&ndash;400 lines of Java is the target. Clean code beats clever code.</li>
-        <li><strong>Suggested build order.</strong> Get a static initial state rendering correctly first. Then add <code>tick()</code>. Then make the parameters configurable. Then add GUI controls.</li>
-      </ul>
-      <p><strong>Submission:</strong> Upload <code>FirstNameLastNameSIR.zip</code> with all your <code>.java</code> files<br>
-      <strong>Deadline:</strong> Week 11 &mdash; due on the day of the final exam (29.06.2026)</p>
+      <h3>SIR Epidemic Simulation (Individual &middot; 10% of the final grade)</h3>
+
+      <p>A small town lives on a grid. Each cell is empty, or holds one person who is <strong>S</strong>usceptible, <strong>I</strong>nfectious, or <strong>R</strong>ecovered. Every day, people near the sick may catch the disease, the sick slowly recover, and everyone wanders to nearby empty cells &mdash; unless a <strong>stay-at-home order</strong> keeps them in. The model is inspired by agent-based epidemic simulations (Huang et al., <em>Simulating SARS</em>, 2004). Your question to explore: <strong>can strict stay-at-home orders effectively contain the epidemic?</strong></p>
+
+      <p><strong>You get a working template</strong> with the MVC structure, the GUI controls and their wiring, a Timer, random seeding, the people-movement logic, and a live S/I/R chart already built. You complete four key parts (search for <code>TODO</code>):</p>
+      <ol>
+        <li><strong><code>countInfectiousNeighbours(row, col)</code></strong> &mdash; count the Infectious cells among the 8 Moore neighbours (just like the Game of Life neighbour count).</li>
+        <li><strong><code>nextState(current, infectiousNeighbours)</code></strong> &mdash; the SIR rule: S&rarr;I with probability <code>1 &minus; (1 &minus; &beta;)<sup>k</sup></code>, I&rarr;R with probability <code>&gamma;</code>, R stays R.</li>
+        <li><strong><code>step()</code></strong> &mdash; advance one day with the <strong>copy-and-swap</strong> pattern: build a new grid from the current one (using the two methods above), then swap it in.</li>
+        <li><strong>the GUI layout</strong> &mdash; arrange the sliders, buttons, the map and the chart with a layout manager. Make the interface your own.</li>
+      </ol>
+
+      <p><strong>Submission:</strong> upload <code>FirstNameLastNameSIR.zip</code> with all your <code>.java</code> files. Individual work.<br>
+      <strong>Deadline:</strong> June 29th at 23:00 PM (Vienna Time).</p>
     </div>
 
     <div class="footer">
       <p>Conceptual Modelling and Programming &middot; University of Vienna &middot; 2026S</p>
     </div>
   </div>
-</div> -->
+</div>
 
 <script src="script.js"></script>
 </body>
